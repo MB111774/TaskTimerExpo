@@ -40,7 +40,6 @@ class index extends React.Component {
       );
     }
     return (
-
       <Provider store={store}>
         <Root>
           <AppWithNavigationState />
