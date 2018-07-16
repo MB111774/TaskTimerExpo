@@ -1,23 +1,55 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Provider, connect } from 'react-redux';
+import { AppRegistry } from 'react-native';
+import { reduxifyNavigator } from 'react-navigation-redux-helpers';
+import { Root } from 'native-base';
+import configureStore from './src/helpers/configureStore';
+import RootNavigator from './src/helpers/navigation';
+import { Font, AppLoading } from "expo";
 
-export default class App extends React.Component {
+console.ignoredYellowBox = ['Remote debugger', 'Warning: isMounted', 'Unable to symbolicate', 'Warning'];
+
+const store = configureStore();
+
+const App = reduxifyNavigator(RootNavigator, 'root');
+const mapStateToProps = state => ({
+  state: state.reduxNavigation,
+});
+const AppWithNavigationState = connect(mapStateToProps)(App);
+
+class index extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { loading: true };
+  }
+
+  async componentWillMount() {
+    await Font.loadAsync({
+      Roboto: require("native-base/Fonts/Roboto.ttf"),
+      Roboto_medium: require("native-base/Fonts/Roboto_medium.ttf")
+    });
+    this.setState({ loading: false });
+  }
+
   render() {
+    if (this.state.loading) {
+      return (
+        <Root>
+          <AppLoading />
+        </Root>
+      );
+    }
     return (
-      <View style={styles.container}>
-        <Text>Open up App.js to start working on your app!</Text>
-        <Text>Changes you make will automatically reload.</Text>
-        <Text>Shake your phone to open the developer menu.</Text>
-      </View>
+
+      <Provider store={store}>
+        <Root>
+          <AppWithNavigationState />
+        </Root>
+      </Provider>
     );
   }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default index;
+
+AppRegistry.registerComponent('TaskTimer', () => index);
